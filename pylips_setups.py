@@ -39,7 +39,10 @@ def run_command(command: str):
     import subprocess
     script = os.path.join(directory, "pylips.py")
     print(f"running pylips with command: {command}")
-    result = subprocess.run(["/home/wd/code/pylips/venv/bin/python3", script, "--command", command],
+    import sys
+    #retrieve python: for virtual environments, execute pylips with the same interpreter
+    python_executable = sys.executable
+    result = subprocess.run([python_executable, script, "--command", command],
         capture_output=True)
     if result.returncode != 0:
         print(f"Warning: script --command {command} returned {result.returncode}")
@@ -82,7 +85,6 @@ def phillips_on():
     else:
         print(f"tv state is: {currentstate['powerstate']}, sending power key")
         power_on_result = run_command("standby")
-        print(f"power_on: {power_on_result}")
 
 
 def phillips_off():
@@ -105,8 +107,13 @@ def switch_to(input):
     if len(json_response) > 1:
         print(f"Warning: multiple json responses found, testing the last one")
         resp = json_response[len(json_response)]
-    else:
+    elif len(json_response) == 1:
         resp = json_response[0]
+    else: 
+        # len(json_response) == 0
+        # this happens sometimes, my tv does the action, but no response
+        # Maybe a timeout??
+        print(f"Error: No Response object received")
 
     if "response" in resp:
         if resp["response"] == "OK":
@@ -135,7 +142,7 @@ if __name__ == "__main__":
                 print(f"tvs current state is: {state['powerstate']}")
             else:
                 print(f"powerstate not retrievable: {state}")
-        elif "input" == command:
-            switch_to("input_hdmi_2")
+        elif command.startswith("input"):
+            switch_to(command)
         else:
             print(f"unknow command: {command}, skipping")
