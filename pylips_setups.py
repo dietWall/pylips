@@ -101,13 +101,20 @@ def switch_to(input):
     '''
     result = run_command(input)
     json_response = get_json_result(result.stdout)
-    if "response" in json_response:
-        if json_response["response"] == "Ok":
+    resp = None
+    if len(json_response) > 1:
+        print(f"Warning: multiple json responses found, testing the last one")
+        resp = json_response[len(json_response)]
+    else:
+        resp = json_response[0]
+
+    if "response" in resp:
+        if resp["response"] == "OK":
             print(f"successfully switched to {input}")
         else:
-            print(f"TV responded with: {json_response}")
+            print(f"TV responded with: {resp}")
     else:
-        print(f"Error: Switching to {input} returned an unexpected response: {json_response}")
+        print(f"Error: Switching to {input} returned an unexpected response: {resp}")
 
 
 if __name__ == "__main__":
